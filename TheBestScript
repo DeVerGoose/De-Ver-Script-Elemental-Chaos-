@@ -1,5 +1,3 @@
-task.wait(2)
-
 local TS = game:GetService("TweenService")
 local RNS = game:GetService("RunService")
 local Player = game:GetService("Players").LocalPlayer
@@ -16,9 +14,12 @@ local flying = false
 local flySpeed = 90
 local bodyVelocity
 
+local CurrentTarget = nil
+
 local WHColor = Color3.new(1, 0.388235, 0.388235)
 
 local SaveAF_TP_List = {CFrame.new(-1273, 368, 302), CFrame.new(-967, 1370, 1459), CFrame.new(-768, 1200, 1756), CFrame.new(-1011, 692, 2378), CFrame.new(-518, 1022, 2186)}
+local SaveAK_TP_List = {CFrame.new(-1273, 368, 302), CFrame.new(-967, 1370, 1459), CFrame.new(-768, 1200, 1756), CFrame.new(-1011, 692, 2378), CFrame.new(-518, 1022, 2186)}
 
 -- // Gui \\ --
 local Gui = Instance.new("ScreenGui", Player.PlayerGui)
@@ -44,6 +45,7 @@ local ButtonTagStroke = Instance.new("UIStroke", ButtonTag)
 ButtonTagStroke.Color = Color3.new(0, 0, 0)
 ButtonTagStroke.Thickness = 5
 ButtonTagStroke.Transparency = 0.7
+
 
 -- Notification List --
 local NotificationList = Instance.new("Frame")
@@ -371,6 +373,65 @@ AutoRespawnUICorner_2.CornerRadius = UDim.new(1, 0)
 AutoRespawnUICorner_2.Name = "AutoRespawnUICorner"
 AutoRespawnUICorner_2.Parent = AutoRespawnBackground
 
+local AutoKill = Instance.new("TextLabel")
+local AutoKillSwitchButton = Instance.new("TextButton")
+local AutoKillSwitchButtonUICorner = Instance.new("UICorner")
+local AutoKillUITextSizeConstraint = Instance.new("UITextSizeConstraint")
+local AutoKillBackground = Instance.new("Frame")
+local AutoKillBackgroundUICorner = Instance.new("UICorner")
+
+--Properties:
+
+AutoKill.Name = "AutoKill"
+AutoKill.Parent = Combat
+AutoKill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+AutoKill.BackgroundTransparency = 1.000
+AutoKill.BorderColor3 = Color3.fromRGB(0, 0, 0)
+AutoKill.BorderSizePixel = 0
+AutoKill.Position = UDim2.new(0.041775018, 0, 0.68161875, 0)
+AutoKill.Size = UDim2.new(0.214784697, 0, 0.171117067, 0)
+AutoKill.ZIndex = 2
+AutoKill.Font = Enum.Font.Oswald
+AutoKill.Text = "Auto Kill"
+AutoKill.TextColor3 = Color3.fromRGB(139, 139, 139)
+AutoKill.TextScaled = true
+AutoKill.TextSize = 14.000
+AutoKill.TextWrapped = true
+AutoKill.TextXAlignment = Enum.TextXAlignment.Left
+
+AutoKillSwitchButton.Name = "AutoKillSwitchButton"
+AutoKillSwitchButton.Parent = AutoKill
+AutoKillSwitchButton.BackgroundColor3 = Color3.fromRGB(139, 139, 139)
+AutoKillSwitchButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+AutoKillSwitchButton.BorderSizePixel = 0
+AutoKillSwitchButton.Position = UDim2.new(1.22538996, 0, 0.19466123, 0)
+AutoKillSwitchButton.Size = UDim2.new(0.293512404, 0, 0.805339217, 0)
+AutoKillSwitchButton.ZIndex = 2
+AutoKillSwitchButton.Font = Enum.Font.SourceSans
+AutoKillSwitchButton.Text = ""
+AutoKillSwitchButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+AutoKillSwitchButton.TextSize = 14.000
+
+AutoKillSwitchButtonUICorner.CornerRadius = UDim.new(1, 0)
+AutoKillSwitchButtonUICorner.Name = "AutoKillSwitchButtonUICorner"
+AutoKillSwitchButtonUICorner.Parent = AutoKillSwitchButton
+
+AutoKillUITextSizeConstraint.Name = "AutoKillUITextSizeConstraint"
+AutoKillUITextSizeConstraint.Parent = AutoKill
+AutoKillUITextSizeConstraint.MaxTextSize = 41
+
+AutoKillBackground.Name = "Background"
+AutoKillBackground.Parent = AutoKill
+AutoKillBackground.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+AutoKillBackground.BorderColor3 = Color3.fromRGB(0, 0, 0)
+AutoKillBackground.BorderSizePixel = 0
+AutoKillBackground.Position = UDim2.new(1.29799902, 0, 0.194999263, 0)
+AutoKillBackground.Size = UDim2.new(0.477136731, 0, 0.805000663, 0)
+
+AutoKillBackgroundUICorner.CornerRadius = UDim.new(1, 0)
+AutoKillBackgroundUICorner.Name = "AutoKillRespawnBackgroundUICorner"
+AutoKillBackgroundUICorner.Parent = AutoKillBackground
+
 --# Movement
 
 local Movement = Instance.new("Frame")
@@ -402,7 +463,7 @@ Fly.Position = UDim2.new(0.0417749472, 0, 0.0412469916, 0)
 Fly.Size = UDim2.new(0.214784682, 0, 0.168430388, 0)
 Fly.ZIndex = 2
 Fly.Font = Enum.Font.Oswald
-Fly.Text = "Simple Fly"
+Fly.Text = "Fly (G)"
 Fly.TextColor3 = Color3.fromRGB(139, 139, 139)
 Fly.TextScaled = true
 Fly.TextSize = 14.000
@@ -723,11 +784,11 @@ local function Notification(Title, SubTitle, Text)
 end
 
 local function AbsoluteButton(Button)
-	local Pos = Button.AbsolutePosition
-	local Size = Button.AbsoluteSize
-	local X = Pos.X + Size.X/2
-	local Y = Pos.Y + Size.Y/2
-	print("X: " .. X .. " | Y: " .. Y)
+	local pos = Button.AbsolutePosition
+
+	local X = pos.X
+	local Y = pos.Y
+	
 	
 	return X, Y
 end
@@ -794,13 +855,197 @@ local function SwitcherSetup(Switcher)
 	end
 end
 
-local function AutoFarmFunction()
-	if not Player.Backpack:FindFirstChildOfClass("Tool") then
-		SwitcherSetup(AutoFarmSwitchButton)
+local function GetEnemy()
+	local enemies = {}
+	for _, v in workspace:GetChildren() do
+		if v:IsA("Model") and v:FindFirstChild("Humanoid") and v ~= Character then
+			local EnemyPlr = game.Players:GetPlayerFromCharacter(v)
+			if EnemyPlr then
+				local data = game.ReplicatedStorage.Data[EnemyPlr.UserId]
+				if data and data.other.InMenu.Value == false then
+					local hum = v:FindFirstChild("Humanoid")
+					if hum and hum.Health > 0 then
+						table.insert(enemies, {
+							Model = v,
+							Humanoid = hum,
+							Health = hum.Health
+						})
+					end
+				end
+			end
+		end
+	end
+
+	if #enemies > 0 then
+		table.sort(enemies, function(a, b)
+			return a.Health < b.Health
+		end)
+		CurrentTarget = enemies[1].Model
+	else
+		CurrentTarget = nil
+	end
+end
+
+local function UseTool(toolName, delayTime)
+	local Tool = Player.Backpack:FindFirstChild(toolName)
+	if Tool then
+		Tool.Parent = Player.Character
+		Tool:Activate()
+		task.delay(0.1, function()
+			if Tool then
+				Tool:Deactivate()
+				Tool.Parent = Player.Backpack
+			end
+		end)
+		if delayTime and delayTime > 0 then
+			task.wait(delayTime)
+		end
+	end
+end
+
+local function RandomTeleport(waitTime)
+	local TeleportPoss = math.random(1, #SaveAF_TP_List)
+	HumRP.CFrame = SaveAK_TP_List[TeleportPoss]
+	if waitTime and waitTime > 0 then
+		task.wait(waitTime)
+	end
+end
+
+local function AutoKill()
+	HumRP.Anchored = false
+	RandomTeleport(0)
+	GetEnemy()
+
+	if not (CurrentTarget and CurrentTarget:FindFirstChild("Humanoid")) then
+		CurrentTarget = nil
 		return
 	end
+
+	local targetHumanoid = CurrentTarget.Humanoid
+	local EnemyPlr = game.Players:GetPlayerFromCharacter(CurrentTarget)
+
+	if not (EnemyPlr and targetHumanoid.Health > 0 and game.ReplicatedStorage.Data[EnemyPlr.UserId].other.InMenu.Value == false) then
+		CurrentTarget = nil
+		return
+	end
+
+	for _, v in Player.Character:GetChildren() do
+		if v:IsA("Tool") then
+			v.Parent = Player.Backpack
+		end
+	end
+
+	local element = game.ReplicatedStorage.Data[Player.UserId].Element.Value
+
+	local start = tick()
 	
+	if element == "Water" then
+		UseTool("Water Essene", 1)
+		HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame
+		UseTool("Splash", 1)
+		UseTool("Water Drop", 1)
+		RandomTeleport(0)
+		UseTool("Water Essene", 10)
+	elseif element == "Ice" then
+		local targetHRP = CurrentTarget:FindFirstChild("HumanoidRootPart")
+		if targetHRP then
+			HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 10)
+
+			local runService = game:GetService("RunService")
+			local conn
+			local start = tick()
+
+			conn = runService.Heartbeat:Connect(function()
+				if tick() - start > 1.75 or not CurrentTarget or not CurrentTarget:FindFirstChild("HumanoidRootPart") then
+					conn:Disconnect()
+					return
+				end
+
+				HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 10)
+			end)
+
+			UseTool("Cryoformation", 1.8)
+			RandomTeleport(5)
+		end
+
+	elseif element == "Electricity" then
+		UseTool("Electric Charge", 2)
+		while tick() - start < 1 do
+			if CurrentTarget:FindFirstChild("HumanoidRootPart") then
+				HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame * CFrame.new(0, 2, -1.25)
+
+			end
+			task.wait(0.025)
+		end
+
+		UseTool("Thundercloud", 1)
+		RandomTeleport(14)
+	elseif element == "Darkness" then
+		HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame
+		UseTool("Shatter", 1)
+		RandomTeleport(8)
+
+	elseif element == "Blood" then
+		local targetHRP = CurrentTarget:FindFirstChild("HumanoidRootPart")
+		if targetHRP then
+			HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 10)
+
+			local runService = game:GetService("RunService")
+			local conn
+			local start = tick()
+
+			conn = runService.Heartbeat:Connect(function()
+				if tick() - start > 1 or not CurrentTarget or not CurrentTarget:FindFirstChild("HumanoidRootPart") then
+					conn:Disconnect()
+					return
+				end
+
+				HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 10)
+			end)
+			
+			UseTool("Blood Saw", 1.1)
+			RandomTeleport(2)
+		end
+		
+
+	elseif element == "Cosmos" then
+		HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame
+		UseTool("Plunnet Summon", 1)
+		if CurrentTarget:FindFirstChild("HumanoidRootPart") then
+			HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame
+		end
+		UseTool("Pocket Nova", 1)
+		RandomTeleport(14)
+
+	elseif element == "Slime" then
+		HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame
+		UseTool("Splash", 1)
+		if CurrentTarget:FindFirstChild("HumanoidRootPart") then
+			HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame
+		end
+		UseTool("Water Drop", 1)
+		RandomTeleport(0)
+		UseTool("Water Essene", 10)
+
+	else
+		Notification("Notification", "Auto Kill", "Havent combo for this Element.")
+		SwitcherSetup(AutoKillSwitchButton)
+	end
+
+	task.wait(1)
+	if AutoKillSwitchButton:GetAttribute("Switch") == true then
+		AutoKill()
+	end
+end
+
+local function AutoFarmFunction()
 	HumRP.Anchored = false
+	
+	for _, v in Player.Character:GetChildren() do
+		if v:IsA("Tool") then
+			v.Parent = Player.Backpack
+		end
+	end
 	
 	local TeleportPoss = math.random(1, #SaveAF_TP_List)
 	HumRP.CFrame = SaveAF_TP_List[TeleportPoss]
@@ -827,12 +1072,16 @@ end
 local function toggleFly()
 	flying = not flying
 	if flying then
+		Notification("Notification", "Simple Fly", "Fly ON")
+		
 		bodyVelocity = Instance.new("BodyVelocity")
 		bodyVelocity.Velocity = Vector3.zero
 		bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
 		bodyVelocity.Parent = HumRP
 		Humanoid.PlatformStand = true
 	else
+		Notification("Notification", "Simple Fly", "Fly OFF")
+		
 		if bodyVelocity then
 			bodyVelocity:Destroy()
 			bodyVelocity = nil
@@ -911,7 +1160,7 @@ RNS.RenderStepped:Connect(function()
 	if game.ReplicatedStorage:FindFirstChild("Data") then
 		Element.Text = "Element: " .. game.ReplicatedStorage.Data[Player.UserId].Element.Value
 	end
-	
+
 	if WHSwitchButton:GetAttribute("Switch") == true then
 		for _, v in workspace:GetChildren() do
 			if v:IsA("Model") and v:FindFirstChild("Humanoid") and not v:FindFirstChild("WallHackHL") and v ~= Character then
@@ -921,10 +1170,9 @@ RNS.RenderStepped:Connect(function()
 	end
 	
 	if AutoRespawnSwitchButton:GetAttribute("Switch") == true then
-		if HumRP.Position == Vector3.new(0, -494.90472412109375, 0) or HumRP.Position == Vector3.new(0, -494.905, 0) then
-			local X, Y = AbsoluteButton(PlayerGui.MainMenu.MainMenuFrame.PlayButton)
-			VIM:SendMouseButtonEvent(X, Y, 0, true, game, 0)
-			VIM:SendMouseButtonEvent(X, Y, 0, false, game, 0)
+		if game.ReplicatedStorage.Data[Player.UserId].other.InMenu.Value == true then
+			local Spawn_upvr = game.ReplicatedStorage.Remotes:WaitForChild("Spawn")
+			Spawn_upvr:FireServer()
 		end
 	end
 	
@@ -957,10 +1205,21 @@ RNS.RenderStepped:Connect(function()
 	end
 end)
 
-Player.CharacterAdded:Connect(function(char)
-	Character = char
-	Humanoid = char:WaitForChild("Humanoid")
-	HumRP = char:WaitForChild("HumanoidRootPart")
+UIS.InputBegan:Connect(function(input, isProcessed)
+	if isProcessed then return end
+	
+	if input.KeyCode == Enum.KeyCode.R then
+		if TPSwitchButton:GetAttribute("Switch") == true then
+			local targetPosition = Player:GetMouse().Hit.p + Vector3.new(0, 3, 0)
+			HumRP.CFrame = CFrame.new(targetPosition)
+
+			UiNotificator:Play()
+			Notification("Notification", "Teleport", "Successfully teleported to the mouse position")
+		end
+	elseif input.KeyCode == Enum.KeyCode.G then
+		SwitcherSetup(FlySwitchButton)
+		toggleFly()
+	end
 end)
 
 TPSwitchButton.MouseButton1Click:Connect(function()
@@ -973,6 +1232,21 @@ AutoFarmSwitchButton.MouseButton1Click:Connect(function()
 		AutoFarmFunction()
 	else
 		HumRP.Anchored = false
+	end
+end)
+
+AutoKillSwitchButton.MouseButton1Click:Connect(function()
+	if game.ReplicatedStorage.Data[Player.UserId].Level.Value < 20 then
+		Notification("Notification", "Auto Kill", "You need to be level 20 to use this feature")
+	else
+		SwitcherSetup(AutoKillSwitchButton)
+		if AutoKillSwitchButton:GetAttribute("Switch") == true then
+			Notification("Notification", "Auto Kill", "Auto Kill ON")
+
+			AutoKill()
+		else
+			Notification("Notification", "Auto Kill", "Auto Kill OFF")
+		end
 	end
 end)
 
@@ -1044,4 +1318,17 @@ ButtonTag.MouseButton1Click:Connect(function()
 	task.delay(0.25, function()
 		ButtonTag.Visible = false
 	end)
+end)
+
+-- Character Reseting
+Player.CharacterAdded:Connect(function(char)
+	Character = char
+	Humanoid = char:WaitForChild("Humanoid")
+	HumRP = char:WaitForChild("HumanoidRootPart")
+	
+	print("ehh..")
+	if FlySwitchButton:GetAttribute("Switch") == true then
+		SwitcherSetup(FlySwitchButton)
+		toggleFly()
+	end
 end)
