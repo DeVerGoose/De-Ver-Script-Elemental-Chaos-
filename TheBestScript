@@ -1015,7 +1015,7 @@ local function AutoKill()
 	elseif element == "Cosmos" then
 		local targetHRP = CurrentTarget:FindFirstChild("HumanoidRootPart")
 		if targetHRP then
-			HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 10)
+			HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, -20, 00)
 
 			local runService = game:GetService("RunService")
 			local conn
@@ -1027,7 +1027,7 @@ local function AutoKill()
 					return
 				end
 
-				HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 10)
+				HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, -20, 0)
 			end)
 			UseTool("Planet Summon", 1.5)
 			UseTool("Pocket Nova", 2.5)
