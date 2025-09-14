@@ -1,3 +1,5 @@
+task.wait(2)
+
 local TS = game:GetService("TweenService")
 local RNS = game:GetService("RunService")
 local Player = game:GetService("Players").LocalPlayer
@@ -970,16 +972,19 @@ local function AutoKill()
 
 	elseif element == "Electricity" then
 		UseTool("Electric Charge", 2)
+		
+		start = tick()
 		while tick() - start < 1 do
 			if CurrentTarget:FindFirstChild("HumanoidRootPart") then
-				HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame * CFrame.new(0, 2, -1.25)
+				HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame * CFrame.new(0, 1, -0.9)
 
 			end
 			task.wait(0.025)
 		end
 
-		UseTool("Thundercloud", 1)
-		RandomTeleport(14)
+		UseTool("Thundercloud", 1.5)
+		UseTool("Jolt", 0.75)
+		RandomTeleport(12)
 	elseif element == "Darkness" then
 		HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame
 		UseTool("Shatter", 1)
@@ -995,37 +1000,70 @@ local function AutoKill()
 			local start = tick()
 
 			conn = runService.Heartbeat:Connect(function()
-				if tick() - start > 1 or not CurrentTarget or not CurrentTarget:FindFirstChild("HumanoidRootPart") then
+				if tick() - start > 0.9 or not CurrentTarget or not CurrentTarget:FindFirstChild("HumanoidRootPart") then
 					conn:Disconnect()
 					return
 				end
 
 				HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 10)
 			end)
+		end
 			
-			UseTool("Blood Saw", 1.1)
-			RandomTeleport(2)
-		end
 		
-
+		UseTool("Blood Saw", 1.1)
+		RandomTeleport(2)
 	elseif element == "Cosmos" then
-		HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame
-		UseTool("Plunnet Summon", 1)
-		if CurrentTarget:FindFirstChild("HumanoidRootPart") then
-			HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame
-		end
-		UseTool("Pocket Nova", 1)
-		RandomTeleport(14)
+		local targetHRP = CurrentTarget:FindFirstChild("HumanoidRootPart")
+		if targetHRP then
+			HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 10)
 
+			local runService = game:GetService("RunService")
+			local conn
+			local start = tick()
+
+			conn = runService.Heartbeat:Connect(function()
+				if tick() - start > 3.8 or not CurrentTarget or not CurrentTarget:FindFirstChild("HumanoidRootPart") then
+					conn:Disconnect()
+					return
+				end
+
+				HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 10)
+			end)
+			UseTool("Planet Summon", 1.5)
+			UseTool("Pocket Nova", 2.5)
+			RandomTeleport(12.4)
+		end
+	elseif element == "Wind" then
+		local targetHRP = CurrentTarget:FindFirstChild("HumanoidRootPart")
+		if targetHRP then
+			HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 10)
+
+			local runService = game:GetService("RunService")
+			local conn
+			local start = tick()
+
+			conn = runService.Heartbeat:Connect(function()
+				if tick() - start > 2.25 or not CurrentTarget or not CurrentTarget:FindFirstChild("HumanoidRootPart") then
+					conn:Disconnect()
+					return
+				end
+
+				HumRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 10)
+			end)
+			UseTool("Wind Bomb", 1.25)
+			UseTool("Push", 1.25)
+			RandomTeleport(4.25)
+		end
 	elseif element == "Slime" then
+		UseTool("Slime Essene", 1)
 		HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame
-		UseTool("Splash", 1)
+		UseTool("Slimy Splash", 1)
 		if CurrentTarget:FindFirstChild("HumanoidRootPart") then
 			HumRP.CFrame = CurrentTarget.HumanoidRootPart.CFrame
 		end
-		UseTool("Water Drop", 1)
+		UseTool("Goop Drop", 1)
 		RandomTeleport(0)
-		UseTool("Water Essene", 10)
+		UseTool("Slime Essene", 10)
 
 	else
 		Notification("Notification", "Auto Kill", "Havent combo for this Element.")
@@ -1219,6 +1257,14 @@ UIS.InputBegan:Connect(function(input, isProcessed)
 	elseif input.KeyCode == Enum.KeyCode.G then
 		SwitcherSetup(FlySwitchButton)
 		toggleFly()
+	elseif input.KeyCode == Enum.KeyCode.H then
+		print("Check1")
+		local ToolHandlerModule = require(Character.Manager.ToolHandler)
+		print("Check2")
+		local Tool = Character:FindFirstChild("Jolt")
+		print("Check3")
+		ToolHandlerModule.Charge(Tool, Tool:GetAttribute("SpellName"))
+		print("Check4")
 	end
 end)
 
